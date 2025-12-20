@@ -1,0 +1,211 @@
+# infrastructure/monitoring/datadog.yaml
+---
+# Datadog configuration for production monitoring
+# This file sets up Datadog Agent for monitoring Docker containers, Azure resources,
+# and application metrics/logs in a production environment.
+
+# Agent Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datadog-agent-config
+  namespace: monitoring
+  labels:
+    app: datadog-agent
+data:
+  datadog.yaml: |
+    # Datadog API key (injected securely via environment variable in deployment)
+    api_key: ${DATADOG_API_KEY}
+    
+    # Site selection for Datadog (US region for this deployment)
+    site: datadoghq.com
+    
+    # Enable logs collection
+    logs_enabled: true
+    logs_config:
+      container_collect_all: true
+    
+    # Enable APM (Application Performance Monitoring)
+    apm_config:
+      enabled: true
+      apm_non_local_traffic: true
+    
+    # Process monitoring for containerized applications
+    process_config:
+      enabled: true
+      process_collection:
+        enabled: true
+    
+    # System metrics collection
+    system_probe_enabled: true
+    
+    # Network monitoring
+    network_config:
+      enabled: true
+    
+    # Enable Docker integration for container monitoring
+    listeners:
+      - name: docker
+    config_providers:
+      - name: docker
+        polling: true
+    
+    # Tags for environment and deployment tracking
+    tags:
+      - env:production
+      - deployment:azure
+      - ci:github-actions
+
+---
+# Datadog Agent Deployment for Kubernetes on Azure AKS
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: datadog-agent
+  namespace: monitoring
+  labels:
+    app: datadog-agent
+spec:
+  selector:
+    matchLabels:
+      app: datadog-agent
+  template:
+    metadata:
+      labels:
+        app: datadog-agent
+      name: datadog-agent
+    spec:
+      # Service account for RBAC permissions
+      serviceAccountName: datadog-agent
+      containers:
+      - image: datadog/agent:latest
+        imagePullPolicy: Always
+        name: datadog-agent
+        ports:
+        - containerPort: 8125
+          name: dogstatsdport
+          protocol: UDP
+        - containerPort: 8126
+          name: traceport
+          protocol: TCP
+        env:
+        - name: DD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: datadog-secrets
+              key: api-key
+        - name: DD_ENV
+          value: production
+        - name: DD_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: DD_TAGS
+          value: "env:production,deployment:azure,ci:github-actions"
+        # Resource limits for production stability
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        # Mount host paths for system metrics
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /var/run/docker.sock
+        - name: procdir
+          mountPath: /host/proc
+          readOnly: true
+        - name: sysfs
+          mountPath: /host/sys/fs/cgroup
+          readOnly: true
+        - name: config
+          mountPath: /etc/datadog-agent
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+        name: dockersocket
+      - hostPath:
+          path: /proc
+        name: procdir
+      - hostPath:
+          path: /sys/fs/cgroup
+        name: sysfs
+      - configMap:
+          name: datadog-agent-config
+        name: config
+      # Security context for restricted privileges
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        privileged: false
+
+---
+# Service for DogStatsD metrics collection
+apiVersion: v1
+kind: Service
+metadata:
+  name: datadog-agent-statsd
+  namespace: monitoring
+  labels:
+    app: datadog-agent
+spec:
+  ports:
+  - port: 8125
+    protocol: UDP
+    targetPort: 8125
+  selector:
+    app: datadog-agent
+
+---
+# Service Account for Datadog Agent
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: datadog-agent
+  namespace: monitoring
+
+---
+# Cluster Role for Datadog Agent permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: datadog-agent
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "pods", "pods/log"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch"]
+
+---
+# Cluster Role Binding for Datadog Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: datadog-agent
+subjects:
+- kind: ServiceAccount
+  name: datadog-agent
+  namespace: monitoring
+roleRef:
+  kind: ClusterRole
+  name: datadog-agent
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Secret for storing Datadog API key securely
+apiVersion: v1
+kind: Secret
+metadata:
+  name: datadog-secrets
+  namespace: monitoring
+type: Opaque
+data:
+  # Base64 encoded API key (injected during deployment via CI/CD)
+  api-key: ${DATADOG_API_KEY_BASE64}

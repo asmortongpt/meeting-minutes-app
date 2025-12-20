@@ -1,0 +1,182 @@
+# .github/workflows/deploy.yml
+name: Production Deployment
+
+# Trigger the workflow on push to main branch or manual dispatch
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Define permissions for the workflow
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+# Environment variables for the workflow
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  AZURE_WEBAPP_NAME: my-production-app
+  AZURE_RESOURCE_GROUP: my-resource-group
+  AZURE_LOCATION: eastus
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=sha
+
+      # Build and push Docker image with Buildx
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  deploy-to-azure:
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+    environment:
+      name: production
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
+    steps:
+      # Log in to Azure using OIDC
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          app-type: webAppLinux
+          start-up-command: 'gunicorn --bind=0.0.0.0:8000 app.wsgi:application' # Adjust based on your app
+
+      # Configure app settings for monitoring and security
+      - name: Configure App Settings
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              WEBSITES_ENABLE_APP_SERVICE_STORAGE=TRUE \
+              WEBSITE_RUN_FROM_PACKAGE=1 \
+              APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.APPINSIGHTS_KEY }} \
+              WEBSITE_WEBDEPLOY_USE_SCM=TRUE
+
+  setup-monitoring:
+    runs-on: ubuntu-latest
+    needs: deploy-to-azure
+    steps:
+      # Log in to Azure for monitoring setup
+      - name: Azure Login for Monitoring
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Enable Application Insights monitoring
+      - name: Enable Application Insights
+        run: |
+          az monitor app-insights component update \
+            --app ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --set retentionInDays=90
+
+      # Set up alerts for critical metrics
+      - name: Setup Alerts
+        run: |
+          az monitor metric alert create \
+            --name "High CPU Usage Alert" \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.AZURE_RESOURCE_GROUP }}/providers/Microsoft.Web/sites/${{ env.AZURE_WEBAPP_NAME }} \
+            --condition "avg Percentage CPU > 80" \
+            --window-size 5m \
+            --evaluation-frequency 1m \
+            --action ${{ secrets.ALERT_ACTION_GROUP_ID }} \
+            --description "Alert when CPU usage exceeds 80% for 5 minutes"
+
+  setup-backups:
+    runs-on: ubuntu-latest
+    needs: deploy-to-azure
+    steps:
+      # Log in to Azure for backup setup
+      - name: Azure Login for Backups
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Configure automated backups
+      - name: Configure Automated Backups
+        run: |
+          az webapp config backup create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --webapp-name ${{ env.AZURE_WEBAPP_NAME }} \
+            --backup-name "DailyBackup" \
+            --container-url ${{ secrets.BACKUP_STORAGE_URL }} \
+            --frequency "1d" \
+            --retention 30 \
+            --frequency-unit Day \
+            --overwrite-if-exists true
+
+  notify-on-success:
+    runs-on: ubuntu-latest
+    needs: [setup-monitoring, setup-backups]
+    if: success()
+    steps:
+      # Send notification on successful deployment
+      - name: Notify on Success
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: 'deployments'
+          text: '✅ Production deployment successful for ${{ github.repository }} at ${{ github.sha }}'
+
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      # Send notification on failed deployment
+      - name: Notify on Failure
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: 'deployments'
+          text: '❌ Production deployment failed for ${{ github.repository }} at ${{ github.sha }}. Check GitHub Actions for details.'

@@ -1,0 +1,245 @@
+/* frontend/src/index.css */
+
+/* Import Google Fonts for consistent typography across platforms */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Root variables for theming and consistent styling */
+:root {
+  /* Light theme colors */
+  --light-bg: #ffffff;
+  --light-text: #1a1a1a;
+  --light-primary: #007bff;
+  --light-secondary: #6c757d;
+  --light-border: #e9ecef;
+  
+  /* Dark theme colors */
+  --dark-bg: #121212;
+  --dark-text: #f8f9fa;
+  --dark-primary: #4dabf7;
+  --dark-secondary: #adb5bd;
+  --dark-border: #343a40;
+  
+  /* Animation and transition timing */
+  --transition-speed: 0.3s;
+  --animation-ease: ease-in-out;
+}
+
+/* Apply dark mode based on user preference or class toggle */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--light-bg);
+  color: var(--light-text);
+  margin: 0;
+  padding: 0;
+  transition: background-color var(--transition-speed) var(--animation-ease),
+              color var(--transition-speed) var(--animation-ease);
+}
+
+body.dark-mode {
+  background-color: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+/* Mobile-first base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--light-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed) var(--animation-ease);
+}
+
+body.dark-mode a {
+  color: var(--dark-primary);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background-color: var(--light-primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background-color var(--transition-speed) var(--animation-ease),
+              transform var(--transition-speed) var(--animation-ease);
+}
+
+body.dark-mode button {
+  background-color: var(--dark-primary);
+}
+
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* Container for responsive design */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+body.dark-mode .skeleton {
+  background: linear-gradient(90deg, #343a40 25%, #495057 50%, #343a40 75%);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fade-in animation for content loading */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn var(--transition-speed) var(--animation-ease) forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Emoji picker styles */
+.emoji-picker {
+  position: absolute;
+  background-color: var(--light-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+body.dark-mode .emoji-picker {
+  background-color: var(--dark-bg);
+  border-color: var(--dark-border);
+}
+
+.emoji-picker button {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform var(--transition-speed) var(--animation-ease);
+}
+
+.emoji-picker button:hover {
+  transform: scale(1.2);
+}
+
+/* Touch gesture support for swipeable components */
+.swipeable {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* Smooth scrolling for touch devices */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+}
+
+p {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  line-height: 1.6;
+}
+
+/* Card component with hover animation */
+.card {
+  background-color: var(--light-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 8px;
+  padding: 16px;
+  transition: transform var(--transition-speed) var(--animation-ease),
+              box-shadow var(--transition-speed) var(--animation-ease);
+}
+
+body.dark-mode .card {
+  background-color: var(--dark-bg);
+  border-color: var(--dark-border);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .card:hover {
+  box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+}
+
+/* Media queries for larger screens */
+@media (min-width: 768px) {
+  .container {
+    padding: 0 24px;
+  }
+  
+  button {
+    padding: 10px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 32px;
+  }
+}
+
+/* Accessibility: Focus styles for interactive elements */
+button:focus, a:focus, input:focus, textarea:focus {
+  outline: 2px solid var(--light-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+body.dark-mode button:focus,
+body.dark-mode a:focus,
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+  outline-color: var(--dark-primary);
+}
+
+/* Prevent text selection in certain areas for better UX on touch devices */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Meeting Minutes Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .cached-content {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .cached-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cached-list {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+
+        .cached-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .cached-item:hover {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>It looks like you've lost your internet connection. Don't worry, you can still view your cached meetings!</p>
+
+        <button onclick="tryAgain()">Try Again</button>
+
+        <div class="cached-content">
+            <h2>Cached Meetings</h2>
+            <div class="cached-list" id="cachedList">
+                <p>Loading cached data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function tryAgain() {
+            window.location.reload();
+        }
+
+        // Load cached meetings
+        async function loadCachedMeetings() {
+            const cachedList = document.getElementById('cachedList');
+
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    const cache = await caches.open(cacheNames[0]);
+                    const requests = await cache.keys();
+
+                    const meetingUrls = requests
+                        .map(req => req.url)
+                        .filter(url => url.includes('/meetings') || url.includes('/api'));
+
+                    if (meetingUrls.length === 0) {
+                        cachedList.innerHTML = '<p>No cached meetings found</p>';
+                        return;
+                    }
+
+                    cachedList.innerHTML = meetingUrls
+                        .slice(0, 10)  // Show max 10
+                        .map(url => {
+                            const path = new URL(url).pathname;
+                            return `<div class="cached-item" onclick="navigateTo('${path}')">${path}</div>`;
+                        })
+                        .join('');
+
+                } catch (error) {
+                    console.error('Error loading cached content:', error);
+                    cachedList.innerHTML = '<p>Unable to load cached content</p>';
+                }
+            } else {
+                cachedList.innerHTML = '<p>Caching not supported in this browser</p>';
+            }
+        }
+
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+
+        // Load cached meetings on page load
+        loadCachedMeetings();
+
+        // Check connection status
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+
+> meeting-minutes-frontend@1.0.0 dev
+> vite
+
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+
+  VITE v5.4.21  ready in 405 ms
+
+  ➜  Local:   http://localhost:5175/
+  ➜  Network: use --host to expose
+8:46:29 PM [vite] changed tsconfig file detected: /Users/andrewmorton/Documents/GitHub/meeting-minutes-app/frontend/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+6:58:21 AM [vite] page reload public/offline.html
+6:58:21 AM [vite] page reload public/offline.html
+6:58:21 AM [vite] page reload public/offline.html
+7:26:17 AM [vite] changed tsconfig file detected: /Users/andrewmorton/Documents/GitHub/meeting-minutes-app/frontend/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+7:55:27 AM [vite] hmr update /src/components/DraggableAgendaItem.tsx, /src/index.css
+7:55:40 AM [vite] hmr update /src/components/QuickStart.tsx, /src/index.css
+7:55:41 AM [vite] hmr update /src/components/DraggableAttendee.tsx, /src/index.css
+7:55:44 AM [vite] hmr update /src/components/DraggableActionItem.tsx, /src/index.css
+7:55:45 AM [vite] hmr update /src/components/VoiceInput.tsx, /src/index.css

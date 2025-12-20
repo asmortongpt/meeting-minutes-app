@@ -1,0 +1,292 @@
+🤖 Deploying Grok AI Agents to Azure VMs
+==========================================
+
+📋 Deployment Plan:
+  VM1 (172.173.175.71): Phases 3-5 (UX, Integrations)
+  VM2 (172.191.6.180): Phases 6-8 (Enterprise, Security, Scale)
+  VM3 (135.119.131.39): Phases 9-11 (Mobile, Advanced AI, Deploy)
+
+📦 Step 1: Deploying Grok agents to all VMs...
+
+📦 Deploying to vm1-phases-3-5 (172.173.175.71)...
+
+📦 Deploying to vm2-phases-6-8 (172.191.6.180)...
+
+📦 Deploying to vm3-phases-9-11 (135.119.131.39)...
+Created Grok agent script for vm1-phases-3-5
+Created Grok agent script for vm3-phases-9-11
+Created Grok agent script for vm2-phases-6-8
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1044-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.09               Processes:             173
+  Usage of /:   75.3% of 28.89GB   Users logged in:       0
+  Memory usage: 2%                 IPv4 address for eth0: 10.0.0.5
+  Swap usage:   0%
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+53 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+🔧 Setting up development environment...
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1041-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.16               Processes:             125
+  Usage of /:   74.4% of 28.89GB   Users logged in:       0
+  Memory usage: 15%                IPv4 address for eth0: 10.0.0.4
+  Swap usage:   0%
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+21 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+6 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+🔧 Setting up development environment...
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1041-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.07               Processes:             123
+  Usage of /:   13.9% of 28.89GB   Users logged in:       0
+  Memory usage: 13%                IPv4 address for eth0: 10.0.0.4
+  Swap usage:   0%
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+21 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+1 additional security update can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+🔧 Setting up development environment...
+W: https://packages.microsoft.com/ubuntu/22.04/prod/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+Reading package lists...
+Building dependency tree...
+Reading state information...
+postgresql-client is already the newest version (14+238).
+git is already the newest version (1:2.34.1-1ubuntu1.15).
+python3-pip is already the newest version (22.0.2+dfsg-1ubuntu0.7).
+redis-tools is already the newest version (5:6.0.16-1ubuntu1.1).
+nodejs is already the newest version (20.19.6-1nodesource1).
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+ nodejs : Conflicts: npm
+ npm : Depends: node-cacache but it is not going to be installed
+       Depends: node-gyp but it is not going to be installed
+       Depends: node-mkdirp but it is not going to be installed
+       Depends: node-nopt but it is not going to be installed
+       Depends: node-tar but it is not going to be installed
+       Depends: node-which but it is not going to be installed
+       Depends: nodejs:any (>= 10)
+       Recommends: node-tap but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.
+W: https://packages.microsoft.com/ubuntu/22.04/prod/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+W: https://packages.microsoft.com/ubuntu/22.04/prod/dists/jammy/InRelease: Key is stored in legacy trusted.gpg keyring (/etc/apt/trusted.gpg), see the DEPRECATION section in apt-key(8) for details.
+Reading package lists...
+Reading package lists...
+Building dependency tree...Building dependency tree...
+Reading state information...
+
+Reading state information...
+git is already the newest version (1:2.34.1-1ubuntu1.15).
+python3-pip is already the newest version (22.0.2+dfsg-1ubuntu0.7).
+nodejs is already the newest version (20.19.6-1nodesource1).
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+git is already the newest version (1:2.34.1-1ubuntu1.15).
+python3-pip is already the newest version (22.0.2+dfsg-1ubuntu0.7).
+nodejs is already the newest version (20.19.6-1nodesource1).
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+ nodejs : Conflicts: npm
+ npm : Depends: node-cacache but it is not going to be installed
+       Depends: node-gyp but it is not going to be installed
+       Depends: node-mkdirp but it is not going to be installed
+       Depends: node-nopt but it is not going to be installed
+       Depends: node-tar but it is not going to be installed
+       Depends: node-which but it is not going to be installed
+       Depends: nodejs:any (>= 10)
+       Recommends: node-tap but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.
+ nodejs : Conflicts: npm
+ npm : Depends: node-cacache but it is not going to be installed
+       Depends: node-gyp but it is not going to be installed
+       Depends: node-mkdirp but it is not going to be installed
+       Depends: node-nopt but it is not going to be installed
+       Depends: node-tar but it is not going to be installed
+       Depends: node-which but it is not going to be installed
+       Depends: nodejs:any (>= 10)
+       Recommends: node-tap but it is not going to be installed
+E: Unable to correct problems, you have held broken packages.
+✅ All agents deployed!
+
+🚀 Step 2: Starting all Grok agents...
+
+🚀 Starting Grok agent on vm1-phases-3-5...
+
+🚀 Starting Grok agent on vm2-phases-6-8...
+
+🚀 Starting Grok agent on vm3-phases-9-11...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1041-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.07               Processes:             123
+  Usage of /:   13.9% of 28.89GB   Users logged in:       0
+  Memory usage: 13%                IPv4 address for eth0: 10.0.0.4
+  Swap usage:   0%
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+21 updates can be applied immediately.
+13 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+1 additional security update can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+New release '24.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1041-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.16               Processes:             125
+  Usage of /:   74.4% of 28.89GB   Users logged in:       0
+  Memory usage: 15%                IPv4 address for eth0: 10.0.0.4
+  Swap usage:   0%
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+22 updates can be applied immediately.
+13 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+6 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+New release '24.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+✅ Agent started on vm2-phases-6-8 (PID: 3169)
+📋 Log: ~/grok-agent.log
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1044-azure x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Dec 20 20:41:54 UTC 2025
+
+  System load:  0.09               Processes:             173
+  Usage of /:   75.3% of 28.89GB   Users logged in:       0
+  Memory usage: 2%                 IPv4 address for eth0: 10.0.0.5
+  Swap usage:   0%
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+53 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+New release '24.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+✅ Agent started on vm3-phases-9-11 (PID: 3374)
+📋 Log: ~/grok-agent.log
+✅ Agent started on vm1-phases-3-5 (PID: 50362)
+📋 Log: ~/grok-agent.log
+✅ All agents running!
+
+{'='*70}
+🎉 Grok Agents Deployed and Running!
+{'='*70}
+
+Monitor progress:
+  VM1: ssh azureuser@172.173.175.71 'tail -f ~/grok-agent.log'
+  VM2: ssh azureuser@172.191.6.180 'tail -f ~/grok-agent.log'
+  VM3: ssh azureuser@135.119.131.39 'tail -f ~/grok-agent.log'
+
+Expected completion: 3-4 hours (running in parallel)
+
