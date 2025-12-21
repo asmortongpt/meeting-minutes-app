@@ -1,0 +1,19 @@
+{
+  "name": "meeting-minutes-app",
+  "version": "1.0.0",
+  "description": "AI-Powered Meeting Minutes Pro Platform",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:chromium": "playwright test --project=chromium",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

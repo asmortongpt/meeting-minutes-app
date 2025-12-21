@@ -44,10 +44,10 @@ class Settings(BaseSettings):
     # ============================================================================
     # Database (PostgreSQL)
     # ============================================================================
-    POSTGRES_SERVER: str = Field(env="POSTGRES_SERVER")
-    POSTGRES_USER: str = Field(env="POSTGRES_USER")
-    POSTGRES_PASSWORD: str = Field(env="POSTGRES_PASSWORD")
-    POSTGRES_DB: str = Field(env="POSTGRES_DB")
+    POSTGRES_SERVER: str = Field(default="postgres", env="POSTGRES_SERVER")
+    POSTGRES_USER: str = Field(default="meeting_user", env="POSTGRES_USER")
+    POSTGRES_PASSWORD: str = Field(default="SecureMeetingPass2024!", env="POSTGRES_PASSWORD")
+    POSTGRES_DB: str = Field(default="meeting_minutes_pro", env="POSTGRES_DB")
     POSTGRES_PORT: int = Field(default=5432, env="POSTGRES_PORT")
 
     DATABASE_URL: Optional[PostgresDsn] = None
@@ -102,8 +102,8 @@ class Settings(BaseSettings):
     # ============================================================================
     # Celery (Background Jobs)
     # ============================================================================
-    CELERY_BROKER_URL: str = Field(env="CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND: str = Field(env="CELERY_RESULT_BACKEND")
+    CELERY_BROKER_URL: str = Field(default="redis://:RedisSecure2024!@redis:6379/1", env="CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND: str = Field(default="redis://:RedisSecure2024!@redis:6379/2", env="CELERY_RESULT_BACKEND")
     CELERY_TASK_SERIALIZER: str = "json"
     CELERY_RESULT_SERIALIZER: str = "json"
     CELERY_ACCEPT_CONTENT: List[str] = ["json"]
@@ -114,7 +114,7 @@ class Settings(BaseSettings):
     # ============================================================================
     # Security & Authentication
     # ============================================================================
-    SECRET_KEY: str = Field(env="SECRET_KEY")
+    SECRET_KEY: str = Field(default="phase1-secret-key-change-in-production-min-32-chars-long", env="SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -135,18 +135,18 @@ class Settings(BaseSettings):
     # AI Services
     # ============================================================================
     # Anthropic Claude
-    ANTHROPIC_API_KEY: str = Field(env="ANTHROPIC_API_KEY")
+    ANTHROPIC_API_KEY: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
     CLAUDE_MODEL_PRIMARY: str = "claude-3-5-sonnet-20241022"
     CLAUDE_MODEL_FAST: str = "claude-3-haiku-20240307"
 
     # OpenAI
-    OPENAI_API_KEY: str = Field(env="OPENAI_API_KEY")
+    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     OPENAI_MODEL_PRIMARY: str = "gpt-4-turbo-preview"
     OPENAI_MODEL_VISION: str = "gpt-4-vision-preview"
     OPENAI_MODEL_FAST: str = "gpt-3.5-turbo"
 
     # Google Gemini
-    GEMINI_API_KEY: str = Field(env="GEMINI_API_KEY")
+    GEMINI_API_KEY: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
     GEMINI_MODEL_PRIMARY: str = "gemini-1.5-pro"
     GEMINI_MODEL_FAST: str = "gemini-1.5-flash"
 
@@ -187,11 +187,11 @@ class Settings(BaseSettings):
     # ============================================================================
     EMAIL_HOST: str = Field(default="smtp.office365.com", env="EMAIL_HOST")
     EMAIL_PORT: int = Field(default=587, env="EMAIL_PORT")
-    EMAIL_USER: str = Field(env="EMAIL_USER")
-    EMAIL_PASSWORD: str = Field(env="EMAIL_PASS")
+    EMAIL_USER: str = Field(default="noreply@meetingminutes.com", env="EMAIL_USER")
+    EMAIL_PASSWORD: str = Field(default="dummy-password", env="EMAIL_PASSWORD")
     EMAIL_USE_TLS: bool = Field(default=True, env="EMAIL_USE_TLS")
     EMAIL_FROM_NAME: str = Field(default="Meeting Minutes Pro", env="EMAIL_FROM_NAME")
-    EMAIL_FROM_ADDRESS: str = Field(env="EMAIL_USER")
+    EMAIL_FROM_ADDRESS: str = Field(default="noreply@meetingminutes.com", env="EMAIL_FROM_ADDRESS")
 
     # ============================================================================
     # Integration APIs

@@ -1,0 +1,149 @@
+# ============================================================================
+# ENHANCED MEETING MINUTES BACKEND - PRODUCTION DEPENDENCIES
+# ============================================================================
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-dotenv==1.0.1
+
+# Database (PostgreSQL + ORM)
+sqlalchemy==2.0.25
+alembic==1.13.1
+psycopg2-binary==2.9.9
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.25
+
+# Caching & Sessions
+redis==5.0.1
+hiredis==2.3.2
+aioredis==2.0.1
+
+# Background Jobs
+celery==5.3.6
+celery[redis]==5.3.6
+flower==2.0.1
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+pydantic[email]==2.5.3
+pydantic-settings==2.1.0
+authlib==1.3.0
+itsdangerous==2.1.2
+
+# AI & ML Models
+anthropic==0.39.0
+openai==1.10.0
+google-generativeai==0.3.2
+tiktoken==0.5.2
+
+# Audio/Video Processing
+openai-whisper==20231117
+pydub==0.25.1
+ffmpeg-python==0.2.0
+soundfile==0.12.1
+librosa==0.10.1
+
+# Image Processing
+pillow==10.2.0
+opencv-python==4.9.0.80
+pytesseract==0.3.10
+
+# Document Generation
+python-docx==1.1.0
+reportlab==4.0.9
+weasyprint==60.2
+jinja2==3.1.3
+markdown==3.5.2
+
+# Data Validation & Serialization
+pydantic==2.5.3
+pydantic-core==2.14.6
+msgpack==1.0.7
+
+# HTTP Clients & Integrations
+httpx==0.26.0
+aiohttp==3.9.3
+requests==2.31.0
+
+# Calendar & Email Integration
+microsoft-graph==1.0.0
+google-api-python-client==2.116.0
+google-auth==2.27.0
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+
+# Communication Platforms
+slack-sdk==3.26.2
+slack-bolt==1.18.1
+pymsteams==0.2.2
+
+# Project Management Integration
+jira==3.6.0
+asana==5.0.4
+
+# WebSocket
+python-socketio==5.11.1
+python-engineio==4.9.0
+websockets==12.0
+
+# Monitoring & Observability
+prometheus-client==0.19.0
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation-fastapi==0.43b0
+sentry-sdk[fastapi]==1.40.0
+
+# Logging
+python-json-logger==2.0.7
+loguru==0.7.2
+
+# Task Scheduling
+apscheduler==3.10.4
+
+# Search (Full-text + Semantic)
+whoosh==2.7.4
+sentence-transformers==2.3.1
+faiss-cpu==1.7.4
+chromadb==0.4.22
+
+# Data Processing
+pandas==2.2.0
+numpy==1.26.3
+scipy==1.12.0
+
+# Rate Limiting
+slowapi==0.1.9
+limits==3.7.0
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx==0.26.0
+fakeredis==2.21.1
+factory-boy==3.3.0
+
+# Development Tools
+black==24.1.1
+isort==5.13.2
+flake8==7.0.0
+mypy==1.8.0
+pylint==3.0.3
+pre-commit==3.6.0
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.6
+
+# Utilities
+python-slugify==8.0.2
+arrow==1.3.0
+pytz==2024.1
+python-dateutil==2.8.2
+phonenumbers==8.13.29
+email-validator==2.1.0.post1
+validators==0.22.0

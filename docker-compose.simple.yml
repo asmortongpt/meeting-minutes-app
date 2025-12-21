@@ -1,0 +1,67 @@
+# Simplified Docker Compose for initial deployment
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: meeting-postgres
+    environment:
+      POSTGRES_USER: meeting_user
+      POSTGRES_PASSWORD: meeting_pass_2024
+      POSTGRES_DB: meeting_minutes
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meeting_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: meeting-redis
+    command: redis-server --requirepass redis_pass_2024
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+    container_name: meeting-backend
+    environment:
+      - DATABASE_URL=postgresql://meeting_user:meeting_pass_2024@postgres:5432/meeting_minutes
+      - REDIS_URL=redis://:redis_pass_2024@redis:6379/0
+      - SECRET_KEY=super-secret-key-change-in-production-12345678901234567890
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEBUG=true
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_USER=meeting_user
+      - POSTGRES_PASSWORD=meeting_pass_2024
+      - POSTGRES_DB=meeting_minutes
+      - POSTGRES_PORT=5432
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://:redis_pass_2024@redis:6379/1
+      - EMAIL_USER=noreply@example.com
+      - EMAIL_PASSWORD=password
+      - EMAIL_FROM_ADDRESS=noreply@example.com
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
