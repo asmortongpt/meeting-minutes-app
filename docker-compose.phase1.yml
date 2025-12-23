@@ -1,0 +1,137 @@
+# ============================================================================
+# Phase 1: Foundation - PostgreSQL + Redis + WebSockets + PWA
+# Quick start for transformation Phase 1
+# ============================================================================
+
+services:
+  # PostgreSQL 15 - Production Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: meeting-postgres-phase1
+    environment:
+      POSTGRES_USER: meeting_user
+      POSTGRES_PASSWORD: SecureMeetingPass2024!
+      POSTGRES_DB: meeting_minutes_pro
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_phase1_data:/var/lib/postgresql/data
+      - ./backend-enhanced/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflict
+    networks:
+      - meeting-network-phase1
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meeting_user -d meeting_minutes_pro"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis 7 - Caching + Session + WebSocket State
+  redis:
+    image: redis:7-alpine
+    container_name: meeting-redis-phase1
+    command: redis-server --appendonly yes --requirepass RedisSecure2024!
+    volumes:
+      - redis_phase1_data:/data
+    ports:
+      - "6380:6379"  # Use 6380 to avoid conflict
+    networks:
+      - meeting-network-phase1
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "-a", "RedisSecure2024!", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # FastAPI Backend with WebSockets
+  backend:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: meeting-backend-phase1
+    environment:
+      # Database - Individual fields
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: meeting_user
+      POSTGRES_PASSWORD: SecureMeetingPass2024!
+      POSTGRES_DB: meeting_minutes_pro
+      POSTGRES_SERVER: postgres
+      DATABASE_URL: postgresql://meeting_user:SecureMeetingPass2024!@postgres:5432/meeting_minutes_pro
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: RedisSecure2024!
+      REDIS_URL: redis://:RedisSecure2024!@redis:6379/0
+
+      # Celery
+      CELERY_BROKER_URL: redis://:RedisSecure2024!@redis:6379/1
+      CELERY_RESULT_BACKEND: redis://:RedisSecure2024!@redis:6379/2
+
+      # Email
+      EMAIL_USER: noreply@meetingminutes.com
+      EMAIL_PASSWORD: dummy-password
+      EMAIL_FROM_ADDRESS: noreply@meetingminutes.com
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-phase1-secret-key-change-in-production-min-32-chars}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-secret-key-change-in-production-min-32}
+
+      # AI APIs
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # Application
+      ENVIRONMENT: development
+      DEBUG: "true"
+      LOG_LEVEL: INFO
+      ALLOWED_ORIGINS: http://localhost:5176,http://localhost:3000
+
+      # WebSocket
+      WS_ENABLED: "true"
+      WS_HEARTBEAT_INTERVAL: 30
+
+    volumes:
+      - ./backend-enhanced:/app
+      - uploads_phase1:/app/uploads
+    ports:
+      - "8001:8000"  # Use 8001 to avoid conflict
+    networks:
+      - meeting-network-phase1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+networks:
+  meeting-network-phase1:
+    driver: bridge
+    name: meeting-network-phase1
+
+volumes:
+  postgres_phase1_data:
+    driver: local
+    name: meeting_postgres_phase1_data
+  redis_phase1_data:
+    driver: local
+    name: meeting_redis_phase1_data
+  uploads_phase1:
+    driver: local
+    name: meeting_uploads_phase1

@@ -1,0 +1,292 @@
+# ============================================================================
+# Docker Compose - Enhanced Meeting Minutes Pro
+# Complete development and production-ready stack
+# ============================================================================
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: meeting-minutes-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-meeting_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meeting_password}
+      POSTGRES_DB: ${POSTGRES_DB:-meeting_minutes}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend-enhanced/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - meeting-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meeting_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: meeting-minutes-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - meeting-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ Message Broker (for Celery)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: meeting-minutes-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin_password}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - meeting-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+    container_name: meeting-minutes-backend
+    environment:
+      # Database
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-meeting_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meeting_password}
+      POSTGRES_DB: ${POSTGRES_DB:-meeting_minutes}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+
+      # Celery
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin_password}@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+
+      # AI APIs (from .env)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # Application
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Email
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.office365.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+    volumes:
+      - ./backend-enhanced:/app
+      - media_uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    networks:
+      - meeting-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Celery Worker (Background Tasks)
+  celery-worker:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+    container_name: meeting-minutes-celery-worker
+    command: celery -A celery_app worker --loglevel=info --concurrency=4
+    environment:
+      # Same as backend
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-meeting_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meeting_password}
+      POSTGRES_DB: ${POSTGRES_DB:-meeting_minutes}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin_password}@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    volumes:
+      - ./backend-enhanced:/app
+      - media_uploads:/app/uploads
+    networks:
+      - meeting-network
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+
+  # Celery Beat (Scheduled Tasks)
+  celery-beat:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+    container_name: meeting-minutes-celery-beat
+    command: celery -A celery_app beat --loglevel=info
+    environment:
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin_password}@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+    volumes:
+      - ./backend-enhanced:/app
+    networks:
+      - meeting-network
+    depends_on:
+      - rabbitmq
+      - redis
+    restart: unless-stopped
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: ./backend-enhanced
+      dockerfile: Dockerfile
+    container_name: meeting-minutes-flower
+    command: celery -A celery_app flower --port=5555
+    environment:
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin_password}@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379/1
+    ports:
+      - "5555:5555"
+    networks:
+      - meeting-network
+    depends_on:
+      - rabbitmq
+      - redis
+    restart: unless-stopped
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meeting-minutes-frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_WS_URL: ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - meeting-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: meeting-minutes-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - meeting-network
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+
+  # Prometheus (Metrics)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: meeting-minutes-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - meeting-network
+    restart: unless-stopped
+
+  # Grafana (Metrics Dashboard)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: meeting-minutes-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - meeting-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+networks:
+  meeting-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  media_uploads:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
